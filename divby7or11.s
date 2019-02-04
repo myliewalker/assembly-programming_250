@@ -45,5 +45,6 @@ done:
     jr $ra
 
 .data
+.align 2
     prompt: .asciiz "Please enter an integer:\n"
     nln: .asciiz "\n"
