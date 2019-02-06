@@ -28,13 +28,14 @@ compare:
     lb $t3, 0($t0)
     lb $s3, 0($s0)
 
-    seq $t4, $t3, 0
+    bne $t3, $s3, readStats
+
+    li $s2, 0
+    seq $t4, $t3, $s2
     seq $s4, $s3, $t2
     seq $t5, $t4, $s4
     li $s5, 1
     beq $t5, $s5, sort
-
-    bne $t2, $s2, readStats
 
     addi $t0, $t0, 1
     addi $s0, $s0, 1
@@ -54,35 +55,67 @@ readStats:
     syscall
     li $v0, 6
     syscall
-    move $s1, $v0
 
     li $v0, 4               #Get year
     la $a0, year_prompt
     syscall
     li $v0, 5
     syscall
-    move $s2, $v0
+    move $s1, $v0
 
-build:
-    li $v0, 9 #create space for a new player
-    li $a0, 80
-    syscall
+    # j print
 
-    la $t0, t_name
-    lw $t0, 0($t3) #name
-    lw $s0, 64($t3) #number
-    lw $s1, 68($t3) #points
-    lw $s2, 76($t3) #year
+# build:
+#     li $v0, 9 #create space for a new player
+#     li $a0, 80
+#     syscall
+
+#     la $t0, t_name
+#     lw $t0, 0($t3) #name
+#     lw $s0, 64($t3) #number
+#     lw $s1, 68($t3) #points
+#     lw $s2, 76($t3) #year
 
     #ADD 32 bits for the next 
     #1. malloc space for player
     #2. copy player data
     #3. add to players
     
+print:
+    li $v0, 4
+    la $a0, t_name
+    syscall
+    li $v0, 4
+    la $a0, nln
+    syscall
+
+    li $v0, 1
+    move $a0, $s0
+    syscall
+    li $v0, 4
+    la $a0, nln
+    syscall
+
+    li $v0, 2
+    mov.s $f12, $f0
+    syscall
+    li $v0, 4
+    la $a0, nln
+    syscall
+
+    li $v0, 1
+    move $a0, $s1
+    syscall
+    li $v0, 4
+    la $a0, nln
+    syscall
+    jr $ra
+
 sort:
     li $v0, 4
     la $a0, equal
     syscall
+    jr $ra
 
 clean:
 
@@ -102,6 +135,7 @@ clean:
         # .float 
         # .integer
 
-    done: .asciiz "DONE"
+    done: .asciiz "DONE\n"
 
     equal: .asciiz "Entered done \n"
+    nln: .asciiz "\n"
