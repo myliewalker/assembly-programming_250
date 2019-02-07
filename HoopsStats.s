@@ -1,13 +1,14 @@
 #t6 stores list
-#t7 stores counter
+#a2 stores counter
 .text
 main:
+    li $a2, 0
+
+new:
     li $v0, 9 #create space for a new player
     li $a0, 112
     syscall
     move $t6, $v0
-
-    li $t7, 0
 
 name:
     li $v0, 4
@@ -87,17 +88,19 @@ year:
 
 next:
     sw $0, 80($t6)
-    addi $t7, $t7, 1
+    addi $a2, $a2, 1
 
-    j main
+    j new
 
 # sort:
 #     j print
 
 print:
-    beqz $t7, exit
+#Printing from the end
+    addi $t6, $t6, -112
+    beqz $a2, exit
 
-    li $v0, 4
+    li $v0, 4 #ISSUE: printing done instead of name - create a new name
     lw $a0, 0($t6)
     syscall
 
@@ -113,10 +116,6 @@ print:
     la $a0, space
     syscall
 
-    # li $v0, 2
-    # lw $f12, 64($t6)
-    # syscall
-
     li $v0, 1
     lw $a0, 76($t6)
     syscall
@@ -125,8 +124,7 @@ print:
     la $a0, nln
     syscall
 
-    addi $t7, $t7, -1
-    addi $t6, $t6, -112
+    addi $a2, $a2, -1
     j print
 
 exit:
