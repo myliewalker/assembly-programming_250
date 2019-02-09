@@ -3,6 +3,8 @@
 #t8 stores prev
 #t9 stores head
 #a2 stores counter - number of nodes in the list
+    #FIX: t6 should be current only (not a list) - set a different for last??
+
 
 .text
 main:
@@ -13,7 +15,7 @@ main:
 allocate:
     #Allocate memory
     li $v0, 9
-    li $a0, 84
+    li $a0, 80
     syscall
     move $t6, $v0
 
@@ -45,7 +47,7 @@ remove:
     la $s0, done
 
 compare:
-    #Check if name is DONE
+    #Check if name is DONE issue - only checking "D"
     lb $t3, 0($t0)
     lb $s3, 0($s0)
 
@@ -97,8 +99,8 @@ points:
     syscall
 
     li $v0, 6
-    syscall  
-    s.s $f0, 68($t6)
+    syscall
+    s.s $f0, 68($t6) #verified stored correctly use float or double??
 
 year:
     li $v0, 4               
@@ -107,10 +109,11 @@ year:
 
     li $v0, 5
     syscall
-    sw $v0, 76($t6)
+
+    sw $v0, 72($t6)
 
 next:
-    sw $0, 80($t6)
+    sw $0, 76($t6)
     addi $a2, $a2, 1
 
     beq $a2, $a3, head
@@ -119,30 +122,40 @@ next:
 
 head:
     move $t9, $t6
+
     j allocate
 
 init:
     move $t7, $t9 #t7 is runner
     move $t8, $t9 #t8 is prev
     li $s2, 1 #counter for sort
-    lw $s6, 68($t6)
-    #FIX: t6 should be current only (not a list) - set a different for last??
-sort:
-    #first is min
-    #implement a counter
-    beq $a2, $s2, allocate
-    lw $s7, 68($t7)
-    bgt $s6, $s7, swap
-    beq $s6, $s7, checkName
+    l.s $f0, 68($t6) #current points is in $f0
 
-    addi $t7, $t7, 84 #t7 = t7->next
-    addi $t8, $t8, 84 #need to make it 1 behind
-    beq $s2, $a3, behind
+    # li $v0, 2
+    # mov.s $f12, $f0
+    # syscall
+
+sort:
+    beq $a2, $s2, allocate
+    l.s $f1, 68($t7) #head points is in $f1
+
+    # li $v0, 2
+    # mov.s $f12, $f1
+    # syscall
+
+    c.lt.s $f0, $f1
+    bc1f, swap #issue: swap is not being called
+    c.eq.s $f1, $f0
+    bc1t, checkName
+
+    addi $t7, $t7, 80 #t7 = t7->next
+    addi $t8, $t8, 80
+    beq $s2, $a3, trail
     addi $s2, $s2, 1
     j sort
 
-behind:
-    addi $t8, $t8, -84
+trail:
+    addi $t8, $t8, -80
     addi $s2, $s2, 1
     j sort
 
@@ -150,23 +163,61 @@ checkName:
     j allocate
 
 swap:
+    # li $v0, 4
+    # la $a0, called
+    # syscall
+
     beq $t7, $t9, changeHead
 
-    addi $t8, $t8, 80
-    move $t8, $t6 #load address of t7 into t8
-    addi $t8, $t8, -80
+    # addi $t8, $t8, 76
+    # move $t8, $t6 #load address of t7 into t8
+    # addi $t8, $t8, -76
+    sw $t6, 76($t8)
+    sw $t7, 76($t6)
 
-    addi $t6, $t6, 80
-    move $t6, $t7
-    addi $t6, $t6, -80
+    # addi $t6, $t6, 76
+    # move $t6, $t7
+    # addi $t6, $t6, -76
 
     j allocate
 
 changeHead:
-    addi $t7, $t7, 80
-    move $t7, $t9 #load address of head into t7->next
-    addi $t7, $t7, -80
-    move $t9, $t7
+    # li $v0, 4
+    # la $a0, called
+    # syscall
+    #t7 is current t9 is head
+    # move $t8, $t9
+    # move $t9, $t6 #head = current
+
+    # li $v0, 4
+    # move $a0, $t9
+    # syscall
+
+    # li $v0, 4
+    # move $a0, $t8
+    # syscall
+
+    sw $t9, 76($t6) #ISSUE: this line is changing data
+    move $t9, $t6
+
+    # addi $t9, $t9, 80
+    li $v0, 4
+    # move $a0, $t9
+    # addi $t9, $t9, 76
+    # move $a0, $t9
+    lw $a0, 76($t9)
+    syscall
+    # move $t9, $t8 #head->next = old head
+    # addi $t9, $t9, -76
+
+    # li $v0, 4
+    # move $a0, $t9
+    # syscall
+
+    # addi $t7, $t7, 80
+    # move $t7, $t9 #load address of head into t7->next
+    # addi $t7, $t7, -80
+    # move $t9, $t7
 
     j allocate
 
@@ -191,7 +242,7 @@ print:
     syscall
 
     li $v0, 1
-    lw $a0, 76($t9)
+    lw $a0, 72($t9)
     syscall
 
     li $v0, 4
@@ -199,7 +250,8 @@ print:
     syscall
 
     addi $a2, $a2, -1
-    addi $t9, $t9, 84
+    # addi $t9, $t9, 80
+    lw $t9, 76($t9)
     j print
 
 exit:
@@ -218,3 +270,5 @@ exit:
     equal: .asciiz "Entered done \n"
     nln: .asciiz "\n"
     space: .asciiz " "
+
+    called: .asciiz "called"
