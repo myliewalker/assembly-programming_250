@@ -47,12 +47,11 @@ remove:
     la $s0, done
 
 compare:
-    #Check if name is DONE issue - only checking "D"
     lb $t3, 0($t0)
     lb $s3, 0($s0)
 
     seq $t4, $t3, $0
-    seq $s4, $s3, $t2
+    seq $s4, $s3, $0
     
     add $t5, $s4, $s4
     li $s5, 2
@@ -131,38 +130,63 @@ init:
     li $s2, 1 #counter for sort
     l.s $f0, 68($t6) #current points is in $f0
 
-sort:
-    beq $a2, $s2, allocate
+sort: #works when swapping with head, otherwise doesnt work
+    beq $a2, $s2, last
     l.s $f1, 68($t7) #head points is in $f1
 
-    c.lt.s $f0, $f1
-    bc1f, swap #issue: swap is not being called
+    c.lt.s $f1, $f0
+    bc1t, swap
+
     c.eq.s $f1, $f0
     bc1t, checkName
 
-    sw $t6, 76($t8)
-    sw $t7, 76($t6)
-    addi $s2, $s2, 1
     lw $t7, 76($t7)
-    beq $s2, $a3, sort
+    # sw $t6, 76($t8) #Issue here    
+    # sw $t7, 76($t6)
+    # lw $t7, 76($t7)
+    beq $s2, $a3, skip
+    addi $s2, $s2, 1
     lw $t8, 76($t8)
+    # move $t8, $t6
 
     j sort
 
+skip:
+    addi $s2, $s2, 1
+    j sort
+
+last:
+    sw $t6, 76($t8)
+    j allocate
+
 checkName:
+    # j allocate
+    # li $v0, 1
+    # li $a0, 100
+    # syscall
+
     lb $s4, 0($t6)
     lb $s5, 0($t7)
     blt $s4, $s5, swap
-    bgt $s4, $s5, allocate
+    bgt $s4, $s5, last
     addi $t6, $t6, 1
     addi $t7, $t7, 1
     j checkName
 
 swap:
+    # j allocate
+
     beq $t7, $t9, changeHead
 
-    sw $t6, 76($t8)
-    sw $t7, 76($t6)
+    # li $v0, 1
+    # li $a0, 100
+    # syscall
+
+    j allocate
+
+    sw $t6, 76($t8) #t8->next = $t6
+    move $t8, $t6
+    sw $t7, 76($t8) #t6->next = $t7
 
     j allocate
 
@@ -217,7 +241,7 @@ exit:
     
     t_name: .space 64
     p_name: .space 64
-    done: .asciiz "DONE\n"
+    done: .asciiz "DONE"
     equal: .asciiz "Entered done \n"
     nln: .asciiz "\n"
     space: .asciiz " "
