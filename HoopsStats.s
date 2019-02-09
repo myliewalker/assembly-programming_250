@@ -41,27 +41,29 @@ nameLoop:
     j nameLoop
 
 remove:
-    #Remove space
     sb $0, 0($t0)
+
     la $t0, t_name
     la $s0, done
+    li $s5, 1
 
 compare:
     #Check if name is DONE issue - only checking "D"
     lb $t3, 0($t0)
     lb $s3, 0($s0)
 
-    bne $t3, $s3, loadName
-
-    li $s2, 0
-    seq $t4, $t3, $s2
+    seq $t4, $t3, $0
     seq $s4, $s3, $t2
-    seq $t5, $t4, $s4
-    li $s5, 1
+    
+    add $t5, $s4, $s4
+    li $s5, 2
     beq $t5, $s5, print
+
+    bne $t3, $s3, loadName
 
     addi $t0, $t0, 1
     addi $s0, $s0, 1
+    addi $s5, $s5, 1
     j compare
 
 loadName:
@@ -148,19 +150,33 @@ sort:
     c.eq.s $f1, $f0
     bc1t, checkName
 
-    addi $t7, $t7, 80 #t7 = t7->next
-    addi $t8, $t8, 80
-    beq $s2, $a3, trail
+    sw $t6, 76($t8)
+    sw $t7, 76($t6)
     addi $s2, $s2, 1
+    lw $t7, 76($t7)
+    beq $s2, $a3, sort
+    lw $t8, 76($t8)
+    # addi $t7, $t7, 80 #t7 = t7->next
+    # addi $t8, $t8, 80
     j sort
 
-trail:
-    addi $t8, $t8, -80
-    addi $s2, $s2, 1
-    j sort
+# trail:
+    # # addi $t8, $t8, -80
+    # addi $s2, $s2, 1
+    # lw $t7, 76($t7)
+    # j sort
 
 checkName:
-    j allocate
+    lb $s4, 0($t6)
+    lb $s5, 0($t7)
+    blt $s4, $s5, swap
+    bgt $s4, $s5, allocate
+    addi $t6, $t6, 1
+    addi $t7, $t7, 1
+    j checkName
+
+# after:
+#     j allocate
 
 swap:
     # li $v0, 4
@@ -197,16 +213,16 @@ changeHead:
     # move $a0, $t8
     # syscall
 
-    sw $t9, 76($t6) #ISSUE: this line is changing data
+    sw $t9, 76($t6)
     move $t9, $t6
 
     # addi $t9, $t9, 80
-    li $v0, 4
+    # li $v0, 4
     # move $a0, $t9
     # addi $t9, $t9, 76
     # move $a0, $t9
-    lw $a0, 76($t9)
-    syscall
+    # lw $a0, 76($t9)
+    # syscall
     # move $t9, $t8 #head->next = old head
     # addi $t9, $t9, -76
 
