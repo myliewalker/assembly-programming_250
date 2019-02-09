@@ -1,19 +1,14 @@
 #t6 stores list - address is $t6
-#t7 stores runner
-#t8 stores prev
-#t9 stores head
 #a2 stores counter - number of nodes in the list
-
 .text
 main:
     #Initialize counter
     li $a2, 0
-    li $a3, 1
 
 allocate:
     #Allocate memory
     li $v0, 9
-    li $a0, 84
+    li $a0, 112
     syscall
     move $t6, $v0
 
@@ -56,7 +51,7 @@ compare:
     seq $s4, $s3, $t2
     seq $t5, $t4, $s4
     li $s5, 1
-    beq $t5, $s5, print
+    beq $t5, $s5, sort
 
     addi $t0, $t0, 1
     addi $s0, $s0, 1
@@ -65,6 +60,7 @@ compare:
 loadName:
     #Store name
     la $s0, t_name
+
     li $t1, 0
 
 addName:
@@ -113,69 +109,41 @@ next:
     sw $0, 80($t6)
     addi $a2, $a2, 1
 
-    beq $a2, $a3, head
-
-    j init
-
-head:
-    move $t9, $t6
     j allocate
 
-init:
-    move $t7, $t9 #t7 is runner
-    move $t8, $t9 #t8 is prev
-    li $s2, 1 #counter for sort
-    lw $s6, 68($t6)
-    #FIX: t6 should be current only (not a list) - set a different for last??
 sort:
-    #first is min
-    #implement a counter
-    beq $a2, $s2, allocate
-    lw $s7, 68($t7)
-    bgt $s6, $s7, swap
-    beq $s6, $s7, checkName
+    blt $a2, 2, print
+    
+    #Allocate space
+    li $v0, 9
+    li $a0, 112
+    syscall
+    move $t7, $v0
 
-    addi $t7, $t7, 84 #t7 = t7->next
-    addi $t8, $t8, 84 #need to make it 1 behind
-    beq $s2, $a3, behind
-    addi $s2, $s2, 1
-    j sort
+    #Find max:
 
-behind:
-    addi $t8, $t8, -84
-    addi $s2, $s2, 1
-    j sort
+max:
+    li $s2, $s1 #runner
+    li $s3, 0
 
-checkName:
-    j allocate
+    beq 
+    bge	$s2, $s1, change
 
-swap:
-    beq $t7, $t9, changeHead
+    change:
+        
 
-    addi $t8, $t8, 80
-    move $t8, $t6 #load address of t7 into t8
-    addi $t8, $t8, -80
 
-    addi $t6, $t6, 80
-    move $t6, $t7
-    addi $t6, $t6, -80
+min:
 
-    j allocate
-
-changeHead:
-    addi $t7, $t7, 80
-    move $t7, $t9 #load address of head into t7->next
-    addi $t7, $t7, -80
-    move $t9, $t7
-
-    j allocate
+seen:
 
 print:
 #Printing from the end
+    addi $t6, $t6, -112
     beqz $a2, exit
 
     li $v0, 4
-    move $a0, $t9
+    move $a0, $t6
     syscall
 
     li $v0, 4
@@ -183,7 +151,7 @@ print:
     syscall
 
     li $v0, 1
-    lw $a0, 64($t9)
+    lw $a0, 64($t6)
     syscall
 
     li $v0, 4
@@ -191,7 +159,7 @@ print:
     syscall
 
     li $v0, 1
-    lw $a0, 76($t9)
+    lw $a0, 76($t6)
     syscall
 
     li $v0, 4
@@ -199,7 +167,6 @@ print:
     syscall
 
     addi $a2, $a2, -1
-    addi $t9, $t9, 84
     j print
 
 exit:
