@@ -168,6 +168,7 @@ checkName:
     # li $v0, 1
     # li $a0, 100
     # syscall
+    #need to compare against next
 
     lb $s4, 0($s6)
     lb $s5, 0($s7)
@@ -182,14 +183,7 @@ swap:
 
     beq $t7, $t9, changeHead
 
-    # li $v0, 1
-    # li $a0, 100
-    # syscall
-
-    # j allocate
-
-    sw $t6, 76($t8) #t8->next = $t6
-    # move $t8, $t6
+    sw $t6, 76($t8)
     sw $t7, 76($t6) #t6->next = $t7
 
     j allocate
@@ -198,10 +192,15 @@ else:
     addi $s2, $s2, 1
     lw $t7, 76($t7)
     lw $t8, 76($t8)
+
     beq $s2, $a2, last
+    l.s $f1, 68($t7)
+    c.eq.s $f1, $f0
+    bc1t, saveName
+
     sw $t6, 76($t8)
     sw $t7, 76($t6)
-    
+
     j allocate
 
 changeHead:
