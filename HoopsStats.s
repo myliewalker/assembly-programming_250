@@ -182,7 +182,7 @@ swap:
     # li $a0, 100
     # syscall
 
-    j allocate
+    # j allocate
 
     sw $t6, 76($t8) #t8->next = $t6
     move $t8, $t6
