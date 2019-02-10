@@ -138,7 +138,7 @@ sort: #works when swapping with head, otherwise doesnt work
     bc1t, swap
 
     c.eq.s $f1, $f0
-    bc1t, checkName
+    bc1t, saveName
 
     lw $t7, 76($t7)
     # sw $t6, 76($t8) #Issue here    
@@ -159,18 +159,22 @@ last:
     sw $t6, 76($t8)
     j allocate
 
+saveName:
+    move $s6, $t6
+    move $s7, $t7
+
 checkName:
     # j allocate
     # li $v0, 1
     # li $a0, 100
     # syscall
 
-    lb $s4, 0($t6)
-    lb $s5, 0($t7)
+    lb $s4, 0($s6)
+    lb $s5, 0($s7)
     blt $s4, $s5, swap
-    bgt $s4, $s5, makeRest #ISSUE: 
-    addi $t6, $t6, 1
-    addi $t7, $t7, 1
+    bgt $s4, $s5, else #ISSUE: 
+    addi $s6, $s6, 1
+    addi $s7, $s7, 1
     j checkName
 
 swap:
@@ -185,16 +189,20 @@ swap:
     # j allocate
 
     sw $t6, 76($t8) #t8->next = $t6
-    move $t8, $t6
-    sw $t7, 76($t8) #t6->next = $t7
+    # move $t8, $t6
+    sw $t7, 76($t6) #t6->next = $t7
 
     j allocate
 
-makeRest:
+else:
+    addi $s2, $s2, 1
     lw $t7, 76($t7)
     lw $t8, 76($t8)
+    beq $s2, $a2, last
     sw $t6, 76($t8)
     sw $t7, 76($t6)
+    
+    j allocate
 
 changeHead:
     sw $t9, 76($t6)
