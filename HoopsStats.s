@@ -1,11 +1,3 @@
-#t6 stores list - address is $t6
-#t7 stores runner
-#t8 stores prev
-#t9 stores head
-#a2 stores counter - number of nodes in the list
-    #FIX: t6 should be current only (not a list) - set a different for last??
-
-
 .text
 main:
     #Initialize counter
@@ -17,7 +9,7 @@ allocate:
     li $v0, 9
     li $a0, 80
     syscall
-    move $t6, $v0
+    move $t6, $v0 #t6 stores current node
 
 name:
     #Read name
@@ -26,27 +18,29 @@ name:
     syscall
 
     li $v0, 8
-    la $a0, t_name #load name into a0
+    la $a0, t_name
     li $a1, 64
     syscall
 
-    la $t0, t_name #load name into t0
+    la $t0, t_name
     li $t2, 10
 
 nameLoop:
-    #Read player name
+    #Remove newline
     lb $t1, 0($t0)
-    beq $t1, $t2, remove
+    beq $t1, $t2, end
     addi $t0, $t0, 1
     j nameLoop
 
-remove:
+end:
+    #End name in 0
     sb $0, 0($t0)
 
     la $t0, t_name
     la $s0, done
 
 compare:
+    #Check if done
     lb $t3, 0($t0)
     lb $s3, 0($s0)
 
@@ -64,11 +58,12 @@ compare:
     j compare
 
 loadName:
-    #Store name
+    #Load name into temp
     la $s0, t_name
     li $t1, 0
 
 addName:
+    #Store name
     lb $t0, 0($s0)
     sb $t0, 0($t6)
     beq $t0, $0, inc
@@ -80,10 +75,11 @@ addName:
     j addName
 
 inc:
+    #Reset current
     sub $t6, $t6, $t1
 
 number:
-    #Read player stats
+    #Read player number
     li $v0, 4               
     la $a0, number_prompt
     syscall
@@ -93,15 +89,17 @@ number:
     sw $v0, 64($t6)
 
 points:
+    #Read player points
     li $v0, 4               
     la $a0, points_prompt
     syscall
 
     li $v0, 6
     syscall
-    s.s $f0, 68($t6) #verified stored correctly use float or double??
+    s.s $f0, 68($t6)
 
 year:
+    #Read player year
     li $v0, 4               
     la $a0, year_prompt
     syscall
@@ -112,6 +110,7 @@ year:
     sw $v0, 72($t6)
 
 next:
+    #Create next
     sw $0, 76($t6)
     addi $a2, $a2, 1
 
@@ -120,19 +119,21 @@ next:
     j init
 
 head:
-    move $t9, $t6
-
+    #Create head
+    move $t9, $t6 #t9 stores head
     j allocate
 
 init:
-    move $t7, $t9 #t7 is runner
-    move $t8, $t9 #t8 is prev
-    li $s2, 1 #counter for sort
-    l.s $f0, 68($t6) #current points is in $f0
+    #Create runners
+    move $t7, $t9 #t7 stores next
+    move $t8, $t9 #t8 stores prev
+    li $s2, 1
+    l.s $f0, 68($t6)
 
-sort: #works when swapping with head, otherwise doesnt work
+sort:
+    #Sort by points then name
     beq $a2, $s2, last
-    l.s $f1, 68($t7) #head points is in $f1
+    l.s $f1, 68($t7)
 
     c.lt.s $f1, $f0
     bc1t, swap
@@ -141,54 +142,48 @@ sort: #works when swapping with head, otherwise doesnt work
     bc1t, saveName
 
     lw $t7, 76($t7)
-    # sw $t6, 76($t8) #Issue here    
-    # sw $t7, 76($t6)
-    # lw $t7, 76($t7)
     beq $s2, $a3, skip
     addi $s2, $s2, 1
     lw $t8, 76($t8)
-    # move $t8, $t6
 
     j sort
 
 skip:
+    #Don't move runner
     addi $s2, $s2, 1
     j sort
 
 last:
+    #Current is last
     sw $t6, 76($t8)
     j allocate
 
 saveName:
+    #Store names in temps
     move $s6, $t6
     move $s7, $t7
 
 checkName:
-    # j allocate
-    # li $v0, 1
-    # li $a0, 100
-    # syscall
-    #need to compare against next
-
+    #Compare names
     lb $s4, 0($s6)
     lb $s5, 0($s7)
     blt $s4, $s5, swap
-    bgt $s4, $s5, else #ISSUE: 
+    bgt $s4, $s5, else
     addi $s6, $s6, 1
     addi $s7, $s7, 1
     j checkName
 
 swap:
-    # j allocate
-
+    #Swap $t6 and $t7
     beq $t7, $t9, changeHead
 
     sw $t6, 76($t8)
-    sw $t7, 76($t6) #t6->next = $t7
+    sw $t7, 76($t6)
 
     j allocate
 
 else:
+    #Place after
     addi $s2, $s2, 1
     lw $t7, 76($t7)
     lw $t8, 76($t8)
@@ -204,13 +199,14 @@ else:
     j allocate
 
 changeHead:
+    #Change head
     sw $t9, 76($t6)
     move $t9, $t6
 
     j allocate
 
 print:
-#Printing from the end
+    #Print elements
     beqz $a2, exit
 
     li $v0, 4
@@ -238,7 +234,6 @@ print:
     syscall
 
     addi $a2, $a2, -1
-    # addi $t9, $t9, 80
     lw $t9, 76($t9)
     j print
 
@@ -253,10 +248,7 @@ exit:
     year_prompt: .asciiz "Enter the player's year:\n"
     
     t_name: .space 64
-    p_name: .space 64
+    
     done: .asciiz "DONE"
-    equal: .asciiz "Entered done \n"
     nln: .asciiz "\n"
     space: .asciiz " "
-
-    called: .asciiz "called"
