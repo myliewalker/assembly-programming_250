@@ -168,7 +168,7 @@ checkName:
     lb $s4, 0($t6)
     lb $s5, 0($t7)
     blt $s4, $s5, swap
-    bgt $s4, $s5, last
+    bgt $s4, $s5, makeRest #ISSUE: 
     addi $t6, $t6, 1
     addi $t7, $t7, 1
     j checkName
@@ -189,6 +189,12 @@ swap:
     sw $t7, 76($t8) #t6->next = $t7
 
     j allocate
+
+makeRest:
+    lw $t7, 76($t7)
+    lw $t8, 76($t8)
+    sw $t6, 76($t8)
+    sw $t7, 76($t6)
 
 changeHead:
     sw $t9, 76($t6)
