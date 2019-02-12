@@ -25,12 +25,12 @@ name:
     la $t0, t_name
     li $t2, 10
 
-nameLoop:
+remove:
     #Remove newline
     lb $t1, 0($t0)
     beq $t1, $t2, end
     addi $t0, $t0, 1
-    j nameLoop
+    j remove
 
 end:
     #End name in 0
@@ -62,7 +62,7 @@ loadName:
     la $s0, t_name
     li $t1, 0
 
-addName:
+storeName:
     #Store name
     lb $t0, 0($s0)
     sb $t0, 0($t6)
@@ -72,7 +72,7 @@ addName:
     addi $s0, $s0, 1
     addi $t6, $t6, 1
 
-    j addName
+    j storeName
 
 inc:
     #Reset current

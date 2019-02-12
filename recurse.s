@@ -8,7 +8,7 @@ main:
     syscall
     move $a0, $v0
 
-    move $t2, $a0
+    move $t0, $a0 #t0 stores input
 
 f:
     addi $sp, $sp, -8
@@ -22,15 +22,15 @@ f:
 
     jal f
 
-    li $t0, 4
-    mul $s1, $s0, $t0 
-    li $t1, 2
-    mul $s2, $v0, $t1
+    li $t1, 4
+    mul $s1, $s0, $t1 
+    li $t2, 2
+    mul $s2, $v0, $t2
     add $v0, $s1, $s2
     addi $v0, $v0, 3 
 
-    addi $t2, $t2, -1
-    bnez $t2, clean
+    addi $t0, $t0, -1
+    bnez $t0, clean
 
     move $v1, $v0
 
@@ -57,5 +57,5 @@ clean:
     jr $ra
 
 .data
-    prompt: .asciiz "Please enter an integer:\n" #should newline character be separate?
+    prompt: .asciiz "Please enter an integer:\n"
     nln: .asciiz "\n"

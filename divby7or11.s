@@ -7,9 +7,9 @@ main:
     li $v0, 5
     syscall
 
-    move $a1, $v0 #a1 - final
-    li $a2, 0 #counter
-    li $a3, 6 #current int
+    move $a1, $v0 #a1 stores total
+    li $a2, 0 #a2 stores counter
+    li $a3, 6 #a3 stores current int
 
     li $v0, 4
     la $a0, nln
