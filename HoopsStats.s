@@ -240,8 +240,8 @@ print:
 exit:
     jr $ra
 
-.data
 .align 2
+.data
     name_prompt: .asciiz "Enter the player's name:\n"
     number_prompt: .asciiz "Enter the player's number:\n"
     points_prompt: .asciiz "Enter the player's average points per game: \n"
